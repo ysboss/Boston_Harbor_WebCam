@@ -119,7 +119,7 @@ tab1Box = VBox(tab1_items)
 tab_nest = Tab()
 tab_nest.children = [tab0Box, tab1Box]
 tab_nest.set_title(0, 'Download')
-tab_nest.set_title(1, 'ImgCvtVideo')
+tab_nest.set_title(1, 'ImgsToVideo')
 
 display(tab_nest)
     
