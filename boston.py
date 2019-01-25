@@ -69,7 +69,7 @@ tab0Box = VBox(tab0_items)
 
 imgsDicText = Text()
 videoNameText = Text(value = 'output')
-fpsSlider = IntSlider(value = 10, min = 10, max = 120, step = 10)
+fpsSlider = IntSlider(value = 2, min = 2, max = 30, step = 2)
 cvtBtn = Button(description = 'Convert')
 
 
