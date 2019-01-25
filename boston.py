@@ -6,8 +6,6 @@ import urllib.request
 from ipywidgets import Button, Box, Text, IntSlider, VBox, Label, Layout, Tab
 from PIL import ImageFont, ImageDraw, Image
 
-
-
 folderText = Text(value = 'images')
 intervalSlider = IntSlider(value = 0, min = 1, max = 60, step = 1)
 totalTimeSlider = IntSlider(value = 0, min = 1, max = 120, step = 1)
@@ -34,11 +32,24 @@ def process(imageurl, folder, name):
         
     try:
         data = urllib.request.urlopen(imageurl).read()
-        imageName = 'boston_' + name + '_' + time.strftime("%d-%m-%Y-%H-%M-%S") + '.jpg'
+        imageName = 'boston_' + name + '_' + time.strftime("%b-%d-%Y-%H-%M-%S") + '.jpg'
         filepath = os.path.join(folder + '/' + name + '/' + imageName)
         image = open(filepath, 'wb')
         image.write(data)
         image.close()
+        
+        # add timestamp to images
+        font = ImageFont.truetype("Roboto-Regular.ttf", 50)
+        img = cv2.imread(filepath)
+        height, width, c = img.shape
+        pos = (80, height-80)
+        cv2_im_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        pil_im = Image.fromarray(cv2_im_rgb)
+        draw = ImageDraw.Draw(pil_im)
+        draw.text(pos, imageName[-24:-4], font = font)
+        cv2_im_processed = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
+        cv2.imwrite(filepath, cv2_im_processed)
+        
         print ("Successfully download " + imageName)
         
         
@@ -56,34 +67,12 @@ tab0_items = [
 tab0Box = VBox(tab0_items)
 
 
-
 imgsDicText = Text()
 videoNameText = Text(value = 'output')
 fpsSlider = IntSlider(value = 10, min = 10, max = 120, step = 10)
 cvtBtn = Button(description = 'Convert')
 
-def addTime2Img(img_dir):
-    if os.path.exists(img_dir+"/images_new"):
-        os.system("rm -fr "+img_dir+"/images_new")
-    font = ImageFont.truetype("Roboto-Regular.ttf", 50)
-    images = []
-    for image in os.listdir(img_dir):
-        images.append(image)
-        
-    os.mkdir(img_dir+"/images_new")
-    
-    for image in images:
-        img_path = os.path.join(img_dir, image)
-        img = cv2.imread(img_path)
-        height, width, c = img.shape
-        pos = (80, height-80)
-        cv2_im_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        pil_im = Image.fromarray(cv2_im_rgb)
-        draw = ImageDraw.Draw(pil_im)
-        draw.text(pos, image[13:-4], font = font)
-        cv2_im_processed = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
-        cv2.imwrite(img_dir+"/images_new/"+image, cv2_im_processed)
-        
+
 def imgCvtVideo(img_dir,fps):
     images = []
     for img in os.listdir(img_dir):
@@ -105,8 +94,7 @@ def imgCvtVideo(img_dir,fps):
     
 def convert_btn_clicked(a):
     try:
-        addTime2Img(imgsDicText.value)
-        imgCvtVideo(imgsDicText.value + "/images_new", fpsSlider.value)
+        imgCvtVideo(imgsDicText.value, fpsSlider.value)
         print ("Successfully convert images to " + videoNameText.value + '.mp4')
     
     except Exception as ex_results:
