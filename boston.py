@@ -3,13 +3,16 @@ import os, time
 import cv2
 import numpy as np
 import urllib.request
-from ipywidgets import Button, Box, Text, IntSlider, VBox, Label, Layout, Tab
+from ipywidgets import Button, Box, Text, IntSlider, VBox, Label, Layout, Tab, Dropdown
 from PIL import ImageFont, ImageDraw, Image
+from datetime import datetime
+import pytz 
 
 folderText = Text(value = 'images')
 intervalSlider = IntSlider(value = 0, min = 1, max = 60, step = 1)
 totalTimeSlider = IntSlider(value = 0, min = 1, max = 120, step = 1)
 downloadBtn = Button(description = 'Download')
+timezoneList = Dropdown(options=pytz.all_timezones) 
 
 def download_btn_clicked(a):
     rootfolder = folderText.value
@@ -32,7 +35,8 @@ def process(imageurl, folder, name):
         
     try:
         data = urllib.request.urlopen(imageurl).read()
-        imageName = 'boston_' + name + '_' + time.strftime("%b-%d-%Y-%H-%M-%S") + '.jpg'
+        now_time = datetime.now(pytz.timezone(timezoneList.value))
+        imageName = 'boston_' + name + '_' + now_time.strftime("%b-%d-%Y-%H-%M-%S") + '.jpg'
         filepath = os.path.join(folder + '/' + name + '/' + imageName)
         image = open(filepath, 'wb')
         image.write(data)
@@ -46,7 +50,7 @@ def process(imageurl, folder, name):
         cv2_im_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         pil_im = Image.fromarray(cv2_im_rgb)
         draw = ImageDraw.Draw(pil_im)
-        draw.text(pos, imageName[-24:-4], font = font)
+        draw.text(pos, imageName[-24:-4] + ' ' + timezoneList.value, font = font)
         cv2_im_processed = cv2.cvtColor(np.array(pil_im), cv2.COLOR_RGB2BGR)
         cv2.imwrite(filepath, cv2_im_processed)
         
@@ -62,6 +66,7 @@ tab0_items = [
     Box([Label(value = "Saving Image Folder:", layout = Layout(width = '200px')), folderText]),
     Box([Label(value = "Downloading Interval (min):", layout = Layout(width = '200px')), intervalSlider]),
     Box([Label(value = "Downloading Time (hr):", layout = Layout(width = '200px')), totalTimeSlider]),
+    Box([Label(value = "Time Zone:", layout = Layout(width = '200px')), timezoneList]),
     Box([downloadBtn])
 ]
 tab0Box = VBox(tab0_items)
